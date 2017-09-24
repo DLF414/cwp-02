@@ -1,4 +1,7 @@
 // client.js
+const clientReqest = "QA";
+const serverAccept = "ACK"
+const serverDecline = "DEC"
 const net = require('net');
 const port = 8124;
 
@@ -8,11 +11,20 @@ client.setEncoding('utf8');
 
 client.connect(port, function() {
     console.log('Connected');
-    client.write('\r\nHello, Server!\r\nLove,\r\nClient.\r\n');
+    client.write(clientReqest);
 });
 
 client.on('data', function(data) {
-    console.log(data);
+    if (data === serverAccept) {
+       //que
+    }
+    else if (data === serverDecline) {
+        console.log(data);
+        client.destroy();
+    } else if (data !== serverAccept) {
+        //que
+            client.destroy();
+    }
     client.destroy();
 });
 
