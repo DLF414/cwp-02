@@ -6,8 +6,9 @@ const OkServerStatus = 'ACK';
 const ErrServerStatus = 'DEC';
 const OkClientStatus = 'QA';
 
-const port = 3001;
+const connectionAddressObj = {host: "127.0.0.1", port: 3001};
 const qaPath = "./qa.json";
+
 const client = new net.Socket();
 
 let questions = [];
@@ -16,7 +17,7 @@ let currentQuestionIndex = 0;
 
 client.setEncoding('utf8');
 
-client.connect({host: "127.0.0.1", port: port}, function () {
+client.connect(connectionAddressObj, function () {
 
     fs.readFile(qaPath, function (err, data) {
         if (err) {
@@ -24,27 +25,25 @@ client.connect({host: "127.0.0.1", port: port}, function () {
         }
         else {
             questions = JSON.parse(data);
-            shuffle();
-            console.log(questions);
+            shuffleQuestion();
+            client.write(OkClientStatus);
         }
     });
 
 });
 
-client.on('connect', function () {
-    client.write(OkClientStatus);
-
-
-})
 
 client.on('data', function (data) {
     if (data === OkServerStatus) {
-        client.write(questions[currentQuestionIndex].question)
+        client.write(questions[currentQuestionIndex].question);
+
     }
     else if (data === ErrServerStatus) {
         console.log(data);
         client.destroy();
-    } else if (data !== OkServerStatus) {
+
+    }
+    else if (data !== OkServerStatus) {
         console.log("\nQuestion: " + questions[currentQuestionIndex].question);
         console.log("Server answer: " + data);
         console.log(data === questions[currentQuestionIndex].corr.toString() ?
@@ -59,12 +58,8 @@ client.on('data', function (data) {
     }
 });
 
-client.on('error', (err) => {
-    console.log(err);
-})
 
-
-function shuffle() {
+function shuffleQuestion() {
     let counter = questions.length;
 
     while (counter > 0) {
@@ -77,3 +72,5 @@ function shuffle() {
         questions[index] = temp;
     }
 }
+
+

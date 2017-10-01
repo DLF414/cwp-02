@@ -12,8 +12,23 @@
   },
 
   {
-    "question":"Да?",
-    "corr":"Да",
-    "incorr":"Нет"
+    "question":"Vopros?",
+    "corr":"Otvet",
+    "incorr":"Neotvet"
+  },
+  {
+    "question":"Is it cwp-02?",
+    "corr":"Yes",
+    "incorr":"No"
+  },
+  {
+    "question":"Is it json?",
+    "corr":"Yes",
+    "incorr":"No"
+  },
+  {
+    "question":"10*2?",
+    "corr":20,
+    "incorr":4
   }
 ]

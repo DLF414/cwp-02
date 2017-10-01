@@ -8,44 +8,81 @@ const serverResStringOK = 'ACK';
 const serverResStringErr = 'DEC';
 
 const qaPath = "./qa.json";
-const clientLogPathDefault='./logs'
+const clientLogPathDefault = './logs'
 
 let questions = [];
 let seed = 0;
+let fdFile;
+
 
 const server = net.createServer(function (client) {
-    let fdFile;
 
     client.setEncoding('utf8');
 
-    client.on('end', () =>
-        console.log('Client disconnected'));
+    client.on('end', function () {
+        console.log(`Client ${client.id} disconnected`);
+    });
 
+    client.on('data', createUserDialog);
+    client.on('data', startUserDialog);
 
-    client.on('data', (data, err) => {
+    function createUserDialog(data, err) {
+        if (!err) {
+            if (data === clientReqString) {
+                client.id = getUniqId();
 
-        if (data === clientReqString) {
-            fs.open(`${clientLogPathDefault}//${getUniqId()}.txt`, 'w',function(err, fd){
-                fdFile = fd;
-                client.write(serverResStringOK);
-            });
+                fs.open(`${clientLogPathDefault}//client_${client.id}.txt`, 'w', function (err, fd) {
+                    fdFile = fd;
+                    clientLogWrite("Client id: " + client.id);
+                    client.write(serverResStringOK);
+                });
 
-        } else if (err) {
+            }
+        } else {
             client.write(serverResStringErr);
             client.write(err);
+
+        }
+    }
+    function startUserDialog(data, err) {
+        if (!err) {
+            if (data !== clientReqString) {
+                let questionObj = getQuestionObj(data);
+                let serverAnswer = questionObj[(Math.random() < 0.5) ? "corr" : "incorr"].toString();
+
+                clientLogWrite('Q: ' + questionObj.question);
+                clientLogWrite('A: ' + serverAnswer);
+
+                client.write(serverAnswer);
+            }
         }
         else {
-            let question_obj = searchQuestionObj(data);
-            client.write(question_obj[(Math.random() < 0.5) ? "corr" : "incorr"].toString());
-            fs.write(fdFile,data,function(err, data){
-
-            });
-            console.log(data);
+            clientLogWrite(err);
         }
-    });
+    }
 });
 
-server.listen(port, 'localhost', function(){
+function getQuestionObj(question) {
+    for (let i = 0; i < questions.length; i++) {
+        if (questions[i].question === question) {
+            return questions[i];
+        }
+    }
+}
+
+function getUniqId() {
+    return Date.now() + seed++;
+}
+
+function clientLogWrite(data) {
+    fs.write(fdFile, data + '\r\n', function (err) {
+        if (err) {
+            console.log(err);
+        }
+    });
+}
+
+server.listen(port, 'localhost', function () {
     console.log("start server");
 
     fs.readFile(qaPath, function (err, data) {
@@ -57,17 +94,3 @@ server.listen(port, 'localhost', function(){
         }
     });
 });
-
-
-function searchQuestionObj(question) {
-    for (let i = 0; i < questions.length; i++) {
-        if (questions[i].question === question) {
-            return questions[i];
-        }
-    }
-
-}
-
-function getUniqId() {
-    return Date.now() + seed++;
-}
