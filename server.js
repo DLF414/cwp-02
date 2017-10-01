@@ -1,33 +1,65 @@
 // server.js
 const net = require('net');
-const port = 8124;
-const clientReqest = "QA";
-const serverAccept = "ACK";
-const serverDecline = "DEC";
-let seed=5;
-const server = net.createServer((client) => {
-    console.log('Client connected');
+const fs = require('fs');
+const port = 3001;
 
-client.setEncoding('utf8');
+const clientReqString = 'QA';
+const serverResStringOK = 'ACK';
+const serverResStringErr = 'DEC';
+const qaPath = "./qa.json";
 
-client.on('data', (data) => {
-    console.log(data);
-client.write('\r\nHello!\r\nRegards,\r\nServer\r\n');
-    console.log('Client id: ' + getUniqId());
-    if (data === clientReqest) {
-                    console.log(data.toString());
-                    client.write(serverAccept);
-    } else {
-        client.write(serverDecline);
+let questions = [];
+let seed = 0;
+
+const server = net.createServer(function (client) {
+
+    client.setEncoding('utf8');
+
+    client.on('end', () =>
+        console.log('Client disconnected'));
+
+
+    client.on('data', (data, err) => {
+
+        if (data === clientReqString) {
+            console.log(data.toString());
+            client.write(serverResStringOK);
+        } else if (err) {
+            client.write(serverResStringErr);
+            client.write(err);
+        }
+        else {
+            let question_obj = searchQuestionObj(data);
+            client.write(question_obj[(Math.random() < 0.5) ? "corr" : "incorr"].toString());
+            console.log(data);
+        }
+    });
+});
+
+server.listen(port, 'localhost', () => {
+    console.log("start server");
+
+    fs.readFile(qaPath, function (err, data) {
+        if (err) {
+            console.log(err);
+        }
+        else {
+            questions = JSON.parse(data);
+        }
+    });
+});
+
+
+function searchQuestionObj(question) {
+    for (let i = 0; i < questions.length; i++) {
+        console.log(questions[i]);
+        if (questions[i].question === question) {
+            return questions[i];
+        }
     }
-});
-client.on('end', () => console.log('Client disconnected'));
-});
-
-server.listen(port, () => {
-    console.log(`Server listening on localhost:${port}`);
-});
+    return null;
+}
 
 function getUniqId() {
-        return Date.now() + seed++;
-    }
+    return Date.now() + seed++;
+}

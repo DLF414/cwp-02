@@ -1,16 +1,19 @@
 [
   {
-    "que":"vopros",
-    "ans":"otvet"
+    "question":"2+2",
+    "corr":4,
+    "incorr":5
   },
 
   {
-    "que":"6*5",
-    "ans":30
+    "question":"3*2",
+    "corr":6,
+    "incorr":11
   },
 
   {
-    "que":"2+8?",
-    "ans":10
+    "question":"Да?",
+    "corr":"Да",
+    "incorr":"Нет"
   }
 ]
