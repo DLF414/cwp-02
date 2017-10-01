@@ -57,8 +57,6 @@ client.on('data', function (data) {
             client.destroy();
         }
     }
-
-
 });
 
 client.on('error', (err) => {
